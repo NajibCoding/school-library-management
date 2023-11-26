@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
-use App\Models\UserDetail;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -28,14 +27,14 @@ class UsersController extends Controller
 
     public function ajax_list(Request $request)
     {
-        $column_order = array(null, 'name', 'roles.id', 'is_active', 'created_at', 'last_login', null);
+        $column_order = array(null, 'name', 'roles.id', 'status', 'created_at', 'last_login', null);
 
         $draw = $request->draw;
         $length = $request->length;
         $start = $request->start;
         // $search = '%' . strtolower(strip_tags(trim($request->search["value"]))) . '%';
         $keyword = '%' . strtolower(strip_tags(trim($request->keyword))) . '%';
-        $is_active = isset($request->is_active) ? strtolower($request->is_active) : '';
+        $status = isset($request->status) ? strtolower($request->status) : '';
         $role = isset($request->role) ? strtolower($request->role) : '';
 
         $order = $request->order['0']['column'];
@@ -46,9 +45,9 @@ class UsersController extends Controller
         $query = User::withoutDeleted()->leftJoin('roles', 'users.role_id', '=', 'roles.id')
             ->select('users.*', 'roles.id as role_id', 'roles.name as role_name')
             ->whereNotIn('users.role_id', [1])
-            ->where(function ($query) use ($is_active) {
-                if ($is_active != "" && auth()->user()->hasRole('SUPERADMIN')) {
-                    $query->where('users.is_active', $is_active);
+            ->where(function ($query) use ($status) {
+                if ($status != "" && auth()->user()->hasRole('SUPERADMIN')) {
+                    $query->where('users.status', $status);
                 }
             })
             ->where(function ($query) use ($role) {
@@ -71,9 +70,9 @@ class UsersController extends Controller
         $total = User::withoutDeleted()->leftJoin('roles', 'users.role_id', '=', 'roles.id')
             ->selectRaw('count(*) as jumlah')
             ->whereNotIn('users.role_id', [1])
-            ->where(function ($query) use ($is_active) {
-                if ($is_active != "" && auth()->user()->hasRole('SUPERADMIN')) {
-                    $query->where('users.is_active', $is_active);
+            ->where(function ($query) use ($status) {
+                if ($status != "" && auth()->user()->hasRole('SUPERADMIN')) {
+                    $query->where('users.status', $status);
                 }
             })
             ->where(function ($query) use ($role) {
@@ -109,7 +108,7 @@ class UsersController extends Controller
                 </div>';
             // dd($actionBtn);
             $output['data'][] = array(
-                $nomor_urut, $row->name, (isset($row->role_name) ? $row->role_name : "No Roles"), ($row->is_active == '2') ? 'Terhapus' : (($row->is_active == '1') ? 'Aktif' : 'Tidak Aktif'), formatDatetime($row->created_at), formatDatetime($row->last_login), $actionBtn
+                $nomor_urut, $row->name, (isset($row->role_name) ? $row->role_name : "No Roles"), ($row->status == '2') ? 'Terhapus' : (($row->status == '1') ? 'Aktif' : 'Tidak Aktif'), formatDatetime($row->created_at), formatDatetime($row->last_login), $actionBtn
             );
             $nomor_urut++;
         }
@@ -175,7 +174,7 @@ class UsersController extends Controller
         $validator = Validator::make($request->all(), [
             'name'          => 'required|string|max:255',
             'email'         => ['required', 'max:255', 'email', Rule::unique('users', 'email')->where(function ($query) {
-                return $query->where('is_active', '!=', 2);
+                return $query->where('status', '!=', 2);
             })],
             'password'      => 'required|string|min:8|max:20',
             // 'status'        => 'required|in:0,1',
@@ -197,16 +196,11 @@ class UsersController extends Controller
                 'email' => sanitize_string($request->email),
                 'password' => bcrypt(sanitize_string($request->password)),
                 'role_id' => sanitize_string($request->input('role_id', 0)) ?? 0,
-                'is_active' => 1,
+                'status' => 1,
                 'created_by' => auth()->user()->id,
             ]);
 
-            $user_detail = UserDetail::create([
-                'user_id' => $user->id,
-                'created_by' => auth()->user()->id,
-            ]);
-
-            if ($request->input('role_id', 0) != 0) $user->assignRole($request->role_id);
+            if ($request->input('role_id', 0) != 0) $user->assignRole((int)$request->role_id);
 
             DB::commit();
         } catch (\Exception $e) {
@@ -224,7 +218,7 @@ class UsersController extends Controller
             'id'    => 'exists:users,id',
             'name' => 'required|string|max:255',
             'email' => ['required', 'max:255', 'email', Rule::unique('users', 'email')->ignore($id)->where(function ($query) {
-                return $query->where('is_active', '!=', 2);
+                return $query->where('status', '!=', 2);
             })],
             'password' => 'nullable|string|min:8|max:20',
             // 'status' => 'required|in:0,1',
@@ -247,16 +241,11 @@ class UsersController extends Controller
                 'email' => sanitize_string($request->email),
                 'password' => sanitize_string($request->password) != null ? bcrypt(sanitize_string($request->password)) : $user->password,
                 'role_id' => sanitize_string($request->input('role_id', 0)) ?? 0,
-                // 'is_active' => sanitize_string($request->input('status')),
+                // 'status' => sanitize_string($request->input('status')),
                 'updated_by' => auth()->user()->id,
             ]);
 
-            $user_detail = UserDetail::where('user_id', $id)->firstOrFail();
-            $user_detail->update([
-                'user_id' => $user->id,
-                'updated_by' => auth()->user()->id,
-            ]);
-            if ($request->input('role_id', 0) != 0) $user->assignRole($request->role_id);
+            if ($request->input('role_id', 0) != 0) $user->assignRole((int)$request->role_id);
 
             DB::commit();
         } catch (\Exception $e) {
@@ -283,7 +272,7 @@ class UsersController extends Controller
 
             $data = User::findOrFail($id);
             $data->update([
-                'is_active' => 2
+                'status' => 2
             ]);
 
             DB::commit();

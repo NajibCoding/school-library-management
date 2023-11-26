@@ -44,7 +44,7 @@ class MenuSeeder extends Seeder
                 'icon'      => 'fa fa-gear',
                 'sequence'  => 900,
                 'roles'     => json_encode(["SUPERADMIN"]),
-                'permission' => json_encode(["users-list", 'konfigurasi-list']),
+                'permission' => json_encode(['users-list', 'access-logs-list', 'konfigurasi-list']),
                 'has_child' => 1
             ]
         );
@@ -61,6 +61,23 @@ class MenuSeeder extends Seeder
                 'sequence'  => 901,
                 'roles'     => json_encode(["SUPERADMIN"]),
                 'permission' => json_encode(["users-list"]),
+                'has_child' => 0
+            ]
+        );
+
+        // Access Logs
+        Menu::updateOrCreate(
+            [
+                'id' => 902
+            ],
+            [
+                'parent_id' => 900,
+                'name'      => 'Access Logs',
+                'url'       => 'admin/access_logs',
+                'icon'      => 'fa fa-gears',
+                'sequence'  => 902,
+                'roles'     => json_encode(["SUPERADMIN"]),
+                'permission' => json_encode(["access-logs-list"]),
                 'has_child' => 0
             ]
         );

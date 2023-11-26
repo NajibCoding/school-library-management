@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\AccessLogsController;
 use App\Http\Controllers\Admin\KonfigurasiController;
 
 /*
@@ -49,6 +50,12 @@ Route::prefix('admin')->middleware('cek_login')->group(function () {
         Route::get('edit/{id}', [UsersController::class, 'edit'])->middleware(['role_or_permission:SUPERADMIN|users-edit']);
         Route::post('ajax_get_one', [UsersController::class, 'ajaxGetOne'])->middleware(['role_or_permission:SUPERADMIN|users-edit']);
         Route::post('ajax_delete', [UsersController::class, 'ajax_delete'])->middleware(['role_or_permission:SUPERADMIN|users-delete']);
+    });
+
+    Route::prefix('access_logs')->group(function () {
+        Route::get('/', [AccessLogsController::class, 'index'])->middleware(['role_or_permission:SUPERADMIN|access-logs-list']);
+        Route::get('ajax_list', [AccessLogsController::class, 'ajaxList'])->middleware(['role_or_permission:SUPERADMIN|access-logs-list']);
+        Route::get('detail/{id}', [AccessLogsController::class, 'detil'])->middleware(['role_or_permission:SUPERADMIN|access-logs-list']);
     });
 
     Route::prefix('konfigurasi')->group(function () {

@@ -29,6 +29,9 @@ class PermissionSeeder extends Seeder
             Permission::create(['name' => 'users-download']);
             Permission::create(['name' => 'users-delete']);
 
+            // Access Logs
+            Permission::create(['name' => 'access-logs-list']);
+
             // Konfigurasi
             Permission::create(['name' => 'konfigurasi-list']);
             Permission::create(['name' => 'konfigurasi-edit']);

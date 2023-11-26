@@ -26,12 +26,12 @@
                         @if (auth()->user()->hasRole('SUPERADMIN'))
                             <div class="col-md-3 col-sm-4">
                                 <label>Status</label>
-                                <select name="is_active" id="is_active" class=" form-control form-control-sm">
-                                    <option value="" {{ request()->get('is_active') ? '' : 'selected' }}>--Pilih--
+                                <select name="status" id="status" class=" form-control form-control-sm">
+                                    <option value="" {{ request()->get('status') ? '' : 'selected' }}>--Pilih--
                                     </option>
-                                    <option value="1" {{ request()->get('is_active') == '1' ? 'selected' : '' }}>Aktif
+                                    <option value="1" {{ request()->get('status') == '1' ? 'selected' : '' }}>Aktif
                                     </option>
-                                    <option value="0" {{ request()->get('is_active') == '0' ? 'selected' : '' }}>Tidak
+                                    <option value="0" {{ request()->get('status') == '0' ? 'selected' : '' }}>Tidak
                                         Aktif
                                     </option>
                                 </select>
@@ -126,10 +126,10 @@
                 showDataTable();
             });
 
-            $('#is_active').on('change', function() {
-                if (is_active != '' && keyword != '' && role != '') {
+            $('#status').on('change', function() {
+                if (status != '' && keyword != '' && role != '') {
                     $('#dt_table').DataTable().destroy();
-                    showDataTable(is_active, keyword, role);
+                    showDataTable(status, keyword, role);
                 } else {
                     $('#dt_table').DataTable().destroy();
                     showDataTable();
@@ -137,9 +137,9 @@
             });
 
             $('#role').on('change', function() {
-                if (is_active != '' && keyword != '' && role != '') {
+                if (status != '' && keyword != '' && role != '') {
                     $('#dt_table').DataTable().destroy();
-                    showDataTable(is_active, keyword, role);
+                    showDataTable(status, keyword, role);
                 } else {
                     $('#dt_table').DataTable().destroy();
                     showDataTable();
@@ -147,9 +147,9 @@
             });
 
             $('#find').on('click', function() {
-                if (is_active != '' && keyword != '' && role != '') {
+                if (status != '' && keyword != '' && role != '') {
                     $('#dt_table').DataTable().destroy();
-                    showDataTable(is_active, keyword, role);
+                    showDataTable(status, keyword, role);
                 } else {
                     $('#dt_table').DataTable().destroy();
                     showDataTable();
@@ -169,7 +169,7 @@
             })
         })
 
-        function showDataTable(is_active = '', keyword = '', role = '') {
+        function showDataTable(status = '', keyword = '', role = '') {
             //console.log($('#role').val());
             $("#dt_table").dataTable().fnDestroy();
             $('#dt_table').DataTable({
@@ -204,7 +204,7 @@
                     type: 'GET',
                     data: {
                         'keyword': $('#keyword').val(),
-                        'is_active': $('#is_active').val(),
+                        'status': $('#status').val(),
                         'role': $('#role').val(),
                     }
                 }
