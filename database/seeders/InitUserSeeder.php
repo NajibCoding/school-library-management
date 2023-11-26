@@ -16,7 +16,6 @@ class InitUserSeeder extends Seeder
     public function run()
     {
         //Table Users
-        // DB::unprepared("INSERT INTO `users` (`id`, `name`, `email`, `password`, `is_active`, `role_id`, `remember_token`, `last_login`, `created_by`, `updated_by`, `created_at`, `updated_at`) VALUES (1, 'Head Office', 'superadmin@admin.com', '\$2y\$10\$6bDotkROfClLF6haojMGd.CRzGXyGhPuWlZrgszM9qMQ9f1TS5ACC', 1, 0, NULL, NULL, NULL, NULL, NULL, NULL);");
         User::firstorCreate([
             'email' => 'superadmin@admin.com',
         ], [
