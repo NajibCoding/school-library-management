@@ -22,11 +22,32 @@ class PermissionSeeder extends Seeder
         try {
             DB::beginTransaction();
 
+            // Book Authors
+            Permission::create(['name' => 'book-authors-list']);
+            Permission::create(['name' => 'book-authors-add']);
+            Permission::create(['name' => 'book-authors-edit']);
+            // Permission::create(['name' => 'book-authors-download']);
+            Permission::create(['name' => 'book-authors-delete']);
+
+            // Book Publishers
+            Permission::create(['name' => 'book-publishers-list']);
+            Permission::create(['name' => 'book-publishers-add']);
+            Permission::create(['name' => 'book-publishers-edit']);
+            // Permission::create(['name' => 'book-publishers-download']);
+            Permission::create(['name' => 'book-publishers-delete']);
+
+            // Books
+            Permission::create(['name' => 'books-list']);
+            Permission::create(['name' => 'books-add']);
+            Permission::create(['name' => 'books-edit']);
+            // Permission::create(['name' => 'books-download']);
+            Permission::create(['name' => 'books-delete']);
+
             // User
             Permission::create(['name' => 'users-list']);
             Permission::create(['name' => 'users-add']);
             Permission::create(['name' => 'users-edit']);
-            Permission::create(['name' => 'users-download']);
+            // Permission::create(['name' => 'users-download']);
             Permission::create(['name' => 'users-delete']);
 
             // Access Logs

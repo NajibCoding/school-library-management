@@ -11,14 +11,14 @@ use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class BookAuthorsController extends Controller
+class BooksController extends Controller
 {
 
     public function index()
     {
-        return view('admin.book_authors.list', [
-            'page_title' => 'Penulis Buku',
-            'page_header' => 'Penulis Buku',
+        return view('admin.books.list', [
+            'page_title' => 'Buku',
+            'page_header' => 'Buku',
         ]);
     }
 
@@ -38,7 +38,7 @@ class BookAuthorsController extends Controller
 
         $order_by = ($column_order[$order]) ? $column_order[$order] : "id";
 
-        $query = BookAuthor::withoutDeleted()->where(function ($query) use ($status) {
+        $query = Book::withoutDeleted()->where(function ($query) use ($status) {
             if ($status != "") {
                 $query->where('status', $status);
             }
@@ -51,7 +51,7 @@ class BookAuthorsController extends Controller
             ->orderBy('created_at', "DESC")
             ->orderBy($order_by, $dir)->get();
 
-        $total = BookAuthor::withoutDeleted()->selectRaw('count(*) as jumlah')->where(function ($query) use ($status) {
+        $total = Book::withoutDeleted()->selectRaw('count(*) as jumlah')->where(function ($query) use ($status) {
             if ($status != "") {
                 $query->where('status', $status);
             }
@@ -69,8 +69,8 @@ class BookAuthorsController extends Controller
         $nomor_urut = $start + 1;
         foreach ($query as $row) {
             $dropdownItem = '';
-            if (auth()->user()->can('book-authors-edit') || auth()->user()->hasRole("SUPERADMIN")) $dropdownItem .= '<a class="dropdown-item" href="' . url(request()->segment(1) . '/' . request()->segment(2) . '/edit', [$row->id]) . '"><i class="fa fa-edit" style="margin-right:5px;"></i>Edit</a>';
-            if (auth()->user()->can('book-authors-delete') || auth()->user()->hasRole("SUPERADMIN")) $dropdownItem .= '<button type="button" data-id="' . $row->id . '" class="dropdown-item delete_data"><i class="fa fa-trash" style="margin-right:5px;"></i>Hapus</button>';
+            if (auth()->user()->can('books-edit') || auth()->user()->hasRole("SUPERADMIN")) $dropdownItem .= '<a class="dropdown-item" href="' . url(request()->segment(1) . '/' . request()->segment(2) . '/edit', [$row->id]) . '"><i class="fa fa-edit" style="margin-right:5px;"></i>Edit</a>';
+            if (auth()->user()->can('books-delete') || auth()->user()->hasRole("SUPERADMIN")) $dropdownItem .= '<button type="button" data-id="' . $row->id . '" class="dropdown-item delete_data"><i class="fa fa-trash" style="margin-right:5px;"></i>Hapus</button>';
             // if (empty($row->email_verified_at)) $dropdownItem .= '<button class="dropdown-item" onclick="ajaxResendEmail(\'' . $row->id . '\')"><i class="fa fa-share" style="margin-right:5px;"></i>Kirim ulang email</a>';
             $actionBtn = '
                 <div class="btn-group">
@@ -91,24 +91,24 @@ class BookAuthorsController extends Controller
 
     public function create()
     {
-        return view('admin.book_authors.form', [
-            'page_title' => 'Penulis Buku',
-            'page_header' => 'Penulis Buku',
-            'card_title' => 'Tambah Penulis Buku',
+        return view('admin.books.form', [
+            'page_title' => 'Buku',
+            'page_header' => 'Buku',
+            'card_title' => 'Tambah Buku',
         ]);
     }
 
     public function edit($id)
     {
         $id = sanitize_string($id, false);
-        if (!BookAuthor::withoutDeleted()->find($id)) {
-            Toastr::error('Data Penulis Buku tidak dapat ditemukan!');
+        if (!Book::withoutDeleted()->find($id)) {
+            Toastr::error('Data Buku tidak dapat ditemukan!');
             return redirect()->back();
         }
-        return view('admin.book_authors.form', [
-            'page_title'    => 'Penulis Buku',
-            'page_header'   => 'Penulis Buku',
-            'card_title'    => 'Ubah Penulis Buku',
+        return view('admin.books.form', [
+            'page_title'    => 'Buku',
+            'page_header'   => 'Buku',
+            'card_title'    => 'Ubah Buku',
         ]);
     }
 
@@ -126,7 +126,7 @@ class BookAuthorsController extends Controller
 
         $id = sanitize_string($request->id, false);
         try {
-            $result = BookAuthor::withoutDeleted()->findOrFail($id);
+            $result = Book::withoutDeleted()->findOrFail($id);
         } catch (\Exception $e) {
             if ($e instanceof ModelNotFoundException) return response()->json(apiRes("error", 'Data tidak ditemukan'), 400);
             return response()->json(apiRes("error", "Terdapat error, silahkan hubungi admin"), 400);
@@ -141,7 +141,7 @@ class BookAuthorsController extends Controller
             'name' => 'required|string|max:255',
             'status' => 'required|in:0,1',
         ], [], [
-            'name' => 'Nama Penulis Buku',
+            'name' => 'Nama Buku',
         ]);
 
         if ($validator->fails()) {
@@ -150,7 +150,7 @@ class BookAuthorsController extends Controller
 
         DB::beginTransaction();
         try {
-            BookAuthor::create([
+            Book::create([
                 'name' => sanitize_string($request->name),
                 'status' => sanitize_string($request->status, false),
                 'created_by' => auth()->user()->id,
@@ -162,7 +162,7 @@ class BookAuthorsController extends Controller
             // throw $e;
             return response()->json(apiRes("error_message", $e->getMessage()), 400);
         }
-        return response()->json(apiRes("success", "Berhasil tambah data Penulis Buku"), 200);
+        return response()->json(apiRes("success", "Berhasil tambah data Buku"), 200);
     }
 
     public function ajax_update(Request $request)
@@ -172,7 +172,7 @@ class BookAuthorsController extends Controller
             'name' => 'required|string|max:255',
             'status' => 'required|in:0,1',
         ], [], [
-            'name' => 'Nama Penulis Buku',
+            'name' => 'Nama Buku',
         ]);
 
         if ($validator->fails()) {
@@ -182,7 +182,7 @@ class BookAuthorsController extends Controller
 
         DB::beginTransaction();
         try {
-            $data = BookAuthor::withoutDeleted()->findOrFail($id);
+            $data = Book::withoutDeleted()->findOrFail($id);
             $data->update([
                 'name' => sanitize_string($request->name),
                 'status' => sanitize_string($request->status, false),
@@ -195,13 +195,13 @@ class BookAuthorsController extends Controller
             if ($e instanceof ModelNotFoundException) return response()->json(apiRes("error", 'Data tidak ditemukan'), 400);
             return response()->json(apiRes("error_message", $e->getMessage()), 400);
         }
-        return response()->json(apiRes("success", "Berhasil ubah data penulis buku"), 200);
+        return response()->json(apiRes("success", "Berhasil ubah data buku"), 200);
     }
 
     public function ajax_delete(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id'    => 'required|exists:book_authors,id',
+            'id'    => 'required|exists:books,id',
         ]);
 
         if ($validator->fails()) {
@@ -212,12 +212,7 @@ class BookAuthorsController extends Controller
         DB::beginTransaction();
         try {
 
-            // Book Checking
-            if ($buku = Book::withoutDeleted()->where('author_id', $request->id)->firstOrFail()) {
-                return response()->json(apiRes("error", "Tidak dapat menghapus, karena data penulis ini digunakan pada buku " . $buku->name), 400);
-            }
-
-            $data = BookAuthor::findOrFail($id);
+            $data = Book::findOrFail($id);
             $data->update([
                 'status' => 2
             ]);

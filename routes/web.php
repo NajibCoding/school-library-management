@@ -2,10 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\BooksController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AccessLogsController;
+use App\Http\Controllers\Admin\BookAuthorsController;
 use App\Http\Controllers\Admin\KonfigurasiController;
+use App\Http\Controllers\Admin\BookPublishersController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +43,42 @@ Route::prefix('admin')->middleware('cek_login')->group(function () {
     Route::prefix('dashboard')->group(function () {
         Route::get('/', [DashboardController::class, 'index']);
     });
+
+    // ========================== Book Management ===========================================
+    Route::prefix('book_authors')->group(function () {
+        Route::get('/', [BookAuthorsController::class, 'index'])->middleware(['role_or_permission:SUPERADMIN|book-authors-list']);
+        Route::get('ajax_list', [BookAuthorsController::class, 'ajax_list'])->middleware(['role_or_permission:SUPERADMIN|book-authors-list']);
+        Route::get('create', [BookAuthorsController::class, 'create'])->middleware(['role_or_permission:SUPERADMIN|book-authors-add']);
+        Route::post('ajax_save', [BookAuthorsController::class, 'ajax_save'])->middleware(['role_or_permission:SUPERADMIN|book-authors-add']);
+        Route::post('ajax_update', [BookAuthorsController::class, 'ajax_update'])->middleware(['role_or_permission:SUPERADMIN|book-authors-edit']);
+        Route::get('edit/{id}', [BookAuthorsController::class, 'edit'])->middleware(['role_or_permission:SUPERADMIN|book-authors-edit']);
+        Route::post('ajax_get_one', [BookAuthorsController::class, 'ajaxGetOne'])->middleware(['role_or_permission:SUPERADMIN|book-authors-edit']);
+        Route::post('ajax_delete', [BookAuthorsController::class, 'ajax_delete'])->middleware(['role_or_permission:SUPERADMIN|book-authors-delete']);
+    });
+
+    Route::prefix('book_publishers')->group(function () {
+        Route::get('/', [BookPublishersController::class, 'index'])->middleware(['role_or_permission:SUPERADMIN|book-publishers-list']);
+        Route::get('ajax_list', [BookPublishersController::class, 'ajax_list'])->middleware(['role_or_permission:SUPERADMIN|book-publishers-list']);
+        Route::get('create', [BookPublishersController::class, 'create'])->middleware(['role_or_permission:SUPERADMIN|book-publishers-add']);
+        Route::post('ajax_save', [BookPublishersController::class, 'ajax_save'])->middleware(['role_or_permission:SUPERADMIN|book-publishers-add']);
+        Route::post('ajax_update', [BookPublishersController::class, 'ajax_update'])->middleware(['role_or_permission:SUPERADMIN|book-publishers-edit']);
+        Route::get('edit/{id}', [BookPublishersController::class, 'edit'])->middleware(['role_or_permission:SUPERADMIN|book-publishers-edit']);
+        Route::post('ajax_get_one', [BookPublishersController::class, 'ajaxGetOne'])->middleware(['role_or_permission:SUPERADMIN|book-publishers-edit']);
+        Route::post('ajax_delete', [BookPublishersController::class, 'ajax_delete'])->middleware(['role_or_permission:SUPERADMIN|book-publishers-delete']);
+    });
+
+    Route::prefix('books')->group(function () {
+        Route::get('/', [BooksController::class, 'index'])->middleware(['role_or_permission:SUPERADMIN|books-list']);
+        Route::get('ajax_list', [BooksController::class, 'ajax_list'])->middleware(['role_or_permission:SUPERADMIN|books-list']);
+        Route::get('create', [BooksController::class, 'create'])->middleware(['role_or_permission:SUPERADMIN|books-add']);
+        Route::post('ajax_save', [BooksController::class, 'ajax_save'])->middleware(['role_or_permission:SUPERADMIN|books-add']);
+        Route::post('ajax_update', [BooksController::class, 'ajax_update'])->middleware(['role_or_permission:SUPERADMIN|books-edit']);
+        Route::get('edit/{id}', [BooksController::class, 'edit'])->middleware(['role_or_permission:SUPERADMIN|books-edit']);
+        Route::post('ajax_get_one', [BooksController::class, 'ajaxGetOne'])->middleware(['role_or_permission:SUPERADMIN|books-edit']);
+        Route::post('ajax_delete', [BooksController::class, 'ajax_delete'])->middleware(['role_or_permission:SUPERADMIN|books-delete']);
+    });
+
+    // ========================== Book Management ===========================================
 
     Route::prefix('users')->group(function () {
         Route::get('/', [UsersController::class, 'index'])->middleware(['role_or_permission:SUPERADMIN|users-list']);

@@ -32,6 +32,75 @@ class MenuSeeder extends Seeder
             ]
         );
 
+
+        // Book Management
+        Menu::updateOrCreate(
+            [
+                'id' => 10
+            ],
+            [
+                'parent_id' => 0,
+                'name'      => 'Book Management',
+                'url'       => '#',
+                'icon'      => 'fa fa-book',
+                'sequence'  => 10,
+                'roles'     => json_encode(["SUPERADMIN"]),
+                'permission' => json_encode(['book-authors-list', 'book-publishers-list', 'books-list']),
+                'has_child' => 1
+            ]
+        );
+
+        // Book Authors
+        Menu::updateOrCreate(
+            [
+                'id' => 11
+            ],
+            [
+                'parent_id' => 10,
+                'name'      => 'Book Authors',
+                'url'       => 'admin/book_authors',
+                'icon'      => 'fa fa-user',
+                'sequence'  => 11,
+                'roles'     => json_encode(["SUPERADMIN"]),
+                'permission' => json_encode(["book-authors-list"]),
+                'has_child' => 0
+            ]
+        );
+
+        // Book Publisher
+        Menu::updateOrCreate(
+            [
+                'id' => 12
+            ],
+            [
+                'parent_id' => 10,
+                'name'      => 'Book Publishers',
+                'url'       => 'admin/book_publishers',
+                'icon'      => 'fa fa-user',
+                'sequence'  => 12,
+                'roles'     => json_encode(["SUPERADMIN"]),
+                'permission' => json_encode(["book-publishers-list"]),
+                'has_child' => 0
+            ]
+        );
+
+        // Book Publisher
+        Menu::updateOrCreate(
+            [
+                'id' => 13
+            ],
+            [
+                'parent_id' => 10,
+                'name'      => 'Books',
+                'url'       => 'admin/books',
+                'icon'      => 'fa fa-book',
+                'sequence'  => 13,
+                'roles'     => json_encode(["SUPERADMIN"]),
+                'permission' => json_encode(["books-list"]),
+                'has_child' => 0
+            ]
+        );
+
         // Setting
         Menu::updateOrCreate(
             [
