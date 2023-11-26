@@ -38,9 +38,9 @@ class BookPublishersController extends Controller
 
         $order_by = ($column_order[$order]) ? $column_order[$order] : "id";
 
-        $query = BookPublisher::withoutDeleted()->where(function ($query) use ($status) {
-            if ($status != "") {
-                $query->where('status', $status);
+        $query = BookPublisher::activeWithRoleCheck()->where(function ($query) use ($status) {
+            if ($status != "" && auth()->user()->hasRole('SUPERADMIN')) {
+                $query->where('status', (int)$status);
             }
         })->where(function ($query) use ($keyword) {
             if (!empty($keyword)) {
@@ -51,9 +51,9 @@ class BookPublishersController extends Controller
             ->orderBy('created_at', "DESC")
             ->orderBy($order_by, $dir)->get();
 
-        $total = BookPublisher::withoutDeleted()->selectRaw('count(*) as jumlah')->where(function ($query) use ($status) {
-            if ($status != "") {
-                $query->where('status', $status);
+        $total = BookPublisher::activeWithRoleCheck()->selectRaw('count(*) as jumlah')->where(function ($query) use ($status) {
+            if ($status != "" && auth()->user()->hasRole('SUPERADMIN')) {
+                $query->where('status', (int)$status);
             }
         })->where(function ($query) use ($keyword) {
             if (!empty($keyword)) {
@@ -69,8 +69,8 @@ class BookPublishersController extends Controller
         $nomor_urut = $start + 1;
         foreach ($query as $row) {
             $dropdownItem = '';
-            if (auth()->user()->can('book-publishers-edit') || auth()->user()->hasRole("SUPERADMIN")) $dropdownItem .= '<a class="dropdown-item" href="' . url(request()->segment(1) . '/' . request()->segment(2) . '/edit', [$row->id]) . '"><i class="fa fa-edit" style="margin-right:5px;"></i>Edit</a>';
-            if (auth()->user()->can('book-publishers-delete') || auth()->user()->hasRole("SUPERADMIN")) $dropdownItem .= '<button type="button" data-id="' . $row->id . '" class="dropdown-item delete_data"><i class="fa fa-trash" style="margin-right:5px;"></i>Hapus</button>';
+            if ((auth()->user()->can('book-publishers-edit') || auth()->user()->hasRole("SUPERADMIN")) && $row->status != 2) $dropdownItem .= '<a class="dropdown-item" href="' . url(request()->segment(1) . '/' . request()->segment(2) . '/edit', [$row->id]) . '"><i class="fa fa-edit" style="margin-right:5px;"></i>Edit</a>';
+            if ((auth()->user()->can('book-publishers-delete') || auth()->user()->hasRole("SUPERADMIN")) && $row->status != 2) $dropdownItem .= '<button type="button" data-id="' . $row->id . '" class="dropdown-item delete_data"><i class="fa fa-trash" style="margin-right:5px;"></i>Hapus</button>';
             // if (empty($row->email_verified_at)) $dropdownItem .= '<button class="dropdown-item" onclick="ajaxResendEmail(\'' . $row->id . '\')"><i class="fa fa-share" style="margin-right:5px;"></i>Kirim ulang email</a>';
             $actionBtn = '
                 <div class="btn-group">
@@ -212,7 +212,7 @@ class BookPublishersController extends Controller
         DB::beginTransaction();
         try {
             // Book Checking
-            if ($buku = Book::withoutDeleted()->where('publisher_id', $request->id)->firstOrFail()) {
+            if ($buku = Book::withoutDeleted()->where('publisher_id', $request->id)->first()) {
                 return response()->json(apiRes("error", "Tidak dapat menghapus, karena data penerbit ini digunakan pada buku " . $buku->name), 400);
             }
 
@@ -224,7 +224,8 @@ class BookPublishersController extends Controller
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(apiRes("error", "Data tidak ditemukan"), 400);
+            if ($e instanceof ModelNotFoundException) return response()->json(apiRes("error", 'Data tidak ditemukan'), 400);
+            return response()->json(apiRes("error", "Terdapat error, silahkan hubungi admin"), 400);
         }
 
         return response()->json(apiRes("success", "Hapus data berhasil"), 200);

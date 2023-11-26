@@ -15,8 +15,13 @@ class Setting extends Model
         'updated_at',
     ];
 
-    public function scopeAutoload($q)
+    public function scopeAutoload($query)
     {
-        $q->where('autoload', 'yes');
+        return $query->where('autoload', 'yes');
+    }
+
+    public function scopeFindByName($query, string $string)
+    {
+        return $query->where('name', $string)->first();
     }
 }

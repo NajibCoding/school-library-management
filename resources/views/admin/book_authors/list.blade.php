@@ -22,18 +22,22 @@
             <div class="row mb-2 justify-content-between">
                 <div class="col-12 col-md-6 mb-2">
                     <div class="row">
-                        <div class="col-md-4 col-sm-5">
-                            <label>Status</label>
-                            <select name="status" id="status" class=" form-control form-control-sm">
-                                <option value="" {{ request()->get('status') ? '' : 'selected' }}>--Pilih--
-                                </option>
-                                <option value="1" {{ request()->get('status') == '1' ? 'selected' : '' }}>Aktif
-                                </option>
-                                <option value="0" {{ request()->get('status') == '0' ? 'selected' : '' }}>Tidak
-                                    Aktif
-                                </option>
-                            </select>
-                        </div>
+                        @if (auth()->user()->hasRole('SUPERADMIN'))
+                            <div class="col-md-4 col-sm-5">
+                                <label>Status</label>
+                                <select name="status" id="status" class=" form-control form-control-sm">
+                                    <option value="" {{ request()->get('status') ? '' : 'selected' }}>--Pilih--
+                                    </option>
+                                    <option value="1" {{ request()->get('status') == '1' ? 'selected' : '' }}>Aktif
+                                    </option>
+                                    <option value="0" {{ request()->get('status') == '0' ? 'selected' : '' }}>Tidak
+                                        Aktif
+                                    </option>
+                                    <option value="2" {{ request()->get('status') == '2' ? 'selected' : '' }}>Terhapus
+                                    </option>
+                                </select>
+                            </div>
+                        @endif
 
                         <div class="col-md-4 col-sm-6">
                             <label>Pencarian</label>
@@ -60,7 +64,7 @@
                                     style="margin-right:5px;"></i>Excel</a>
                         </div>
                     </div> --}}
-                    @if (auth()->user()->can('cabang-add') ||
+                    @if (auth()->user()->can('book-authors-add') ||
                             auth()->user()->hasRole('SUPERADMIN'))
                         <a href="{{ url(request()->segment(1) . '/' . request()->segment(2) . '/create') }}"
                             class="btn btn-success btn-sm"><i class="fa fa-plus" style="margin-right:5px"></i>Tambah

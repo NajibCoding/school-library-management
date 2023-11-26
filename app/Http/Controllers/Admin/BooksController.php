@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Book;
 use App\Models\BookAuthor;
 use Illuminate\Http\Request;
+use App\Models\BookPublisher;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
@@ -24,7 +25,7 @@ class BooksController extends Controller
 
     public function ajax_list(Request $request)
     {
-        $column_order = array(null, 'name', 'status', 'created_at', null);
+        $column_order = array(null, 'name', 'author_name', 'publisher_name', 'publication_year', 'number_of_pages', 'status', 'created_at', null);
 
         $draw = $request->draw;
         $length = $request->length;
@@ -38,28 +39,39 @@ class BooksController extends Controller
 
         $order_by = ($column_order[$order]) ? $column_order[$order] : "id";
 
-        $query = Book::withoutDeleted()->where(function ($query) use ($status) {
-            if ($status != "") {
-                $query->where('status', $status);
-            }
-        })->where(function ($query) use ($keyword) {
-            if (!empty($keyword)) {
-                $query->where('name', 'like', $keyword);
-            }
-        })->offset($start)
+        $query = Book::activeWithRoleCheck()
+            ->leftJoin('book_authors', 'book_authors.id', '=', 'books.author_id')
+            ->leftJoin('book_publishers', 'book_publishers.id', '=', 'books.publisher_id')
+            ->select('books.*', 'book_authors.name AS author_name', 'book_publishers.name AS publisher_name')
+            ->where(function ($query) use ($status) {
+                if ($status != "" && auth()->user()->hasRole('SUPERADMIN')) {
+                    $query->where('books.status', (int)$status);
+                }
+            })->where(function ($query) use ($keyword) {
+                if (!empty($keyword)) {
+                    $query->orWhere('books.name', 'like', $keyword);
+                    $query->orWhere('book_authors.name', 'like', $keyword);
+                    $query->orWhere('book_publishers.name', 'like', $keyword);
+                }
+            })->offset($start)
             ->limit($length)
             ->orderBy('created_at', "DESC")
             ->orderBy($order_by, $dir)->get();
 
-        $total = Book::withoutDeleted()->selectRaw('count(*) as jumlah')->where(function ($query) use ($status) {
-            if ($status != "") {
-                $query->where('status', $status);
-            }
-        })->where(function ($query) use ($keyword) {
-            if (!empty($keyword)) {
-                $query->where('name', 'like', $keyword);
-            }
-        })->first()->jumlah;
+        $total = Book::activeWithRoleCheck()
+            ->leftJoin('book_authors', 'book_authors.id', '=', 'books.author_id')
+            ->leftJoin('book_publishers', 'book_publishers.id', '=', 'books.publisher_id')
+            ->selectRaw('count(books.id) as jumlah')->where(function ($query) use ($status) {
+                if ($status != "" && auth()->user()->hasRole('SUPERADMIN')) {
+                    $query->where('books.status', (int)$status);
+                }
+            })->where(function ($query) use ($keyword) {
+                if (!empty($keyword)) {
+                    $query->orWhere('books.name', 'like', $keyword);
+                    $query->orWhere('book_authors.name', 'like', $keyword);
+                    $query->orWhere('book_publishers.name', 'like', $keyword);
+                }
+            })->first()->jumlah;
 
         $output = array();
         $output['draw'] = $draw;
@@ -69,8 +81,8 @@ class BooksController extends Controller
         $nomor_urut = $start + 1;
         foreach ($query as $row) {
             $dropdownItem = '';
-            if (auth()->user()->can('books-edit') || auth()->user()->hasRole("SUPERADMIN")) $dropdownItem .= '<a class="dropdown-item" href="' . url(request()->segment(1) . '/' . request()->segment(2) . '/edit', [$row->id]) . '"><i class="fa fa-edit" style="margin-right:5px;"></i>Edit</a>';
-            if (auth()->user()->can('books-delete') || auth()->user()->hasRole("SUPERADMIN")) $dropdownItem .= '<button type="button" data-id="' . $row->id . '" class="dropdown-item delete_data"><i class="fa fa-trash" style="margin-right:5px;"></i>Hapus</button>';
+            if ((auth()->user()->can('books-edit') || auth()->user()->hasRole("SUPERADMIN")) && $row->status != 2) $dropdownItem .= '<a class="dropdown-item" href="' . url(request()->segment(1) . '/' . request()->segment(2) . '/edit', [$row->id]) . '"><i class="fa fa-edit" style="margin-right:5px;"></i>Edit</a>';
+            if ((auth()->user()->can('books-delete') || auth()->user()->hasRole("SUPERADMIN")) && $row->status != 2) $dropdownItem .= '<button type="button" data-id="' . $row->id . '" class="dropdown-item delete_data"><i class="fa fa-trash" style="margin-right:5px;"></i>Hapus</button>';
             // if (empty($row->email_verified_at)) $dropdownItem .= '<button class="dropdown-item" onclick="ajaxResendEmail(\'' . $row->id . '\')"><i class="fa fa-share" style="margin-right:5px;"></i>Kirim ulang email</a>';
             $actionBtn = '
                 <div class="btn-group">
@@ -82,7 +94,7 @@ class BooksController extends Controller
                 </div>';
             // dd($actionBtn);
             $output['data'][] = array(
-                $nomor_urut, $row->name, ($row->status == '2') ? 'Terhapus' : (($row->status == '1') ? 'Aktif' : 'Tidak Aktif'), formatDatetime($row->created_at), $actionBtn
+                $nomor_urut, $row->name, $row->author_name ?? "Belum dipilih", $row->publisher_name ?? "Belum dipilih", $row->publication_year, $row->number_of_pages, ($row->status == '2') ? 'Terhapus' : (($row->status == '1') ? 'Aktif' : 'Tidak Aktif'), formatDatetime($row->created_at), $actionBtn
             );
             $nomor_urut++;
         }
@@ -92,9 +104,11 @@ class BooksController extends Controller
     public function create()
     {
         return view('admin.books.form', [
-            'page_title' => 'Buku',
-            'page_header' => 'Buku',
-            'card_title' => 'Tambah Buku',
+            'page_title'    => 'Buku',
+            'page_header'   => 'Buku',
+            'card_title'    => 'Tambah Buku',
+            'authors'       => BookAuthor::withoutDeleted()->get(),
+            'publishers'    => BookPublisher::withoutDeleted()->get(),
         ]);
     }
 
@@ -109,6 +123,8 @@ class BooksController extends Controller
             'page_title'    => 'Buku',
             'page_header'   => 'Buku',
             'card_title'    => 'Ubah Buku',
+            'authors'       => BookAuthor::withoutDeleted()->get(),
+            'publishers'    => BookPublisher::withoutDeleted()->get(),
         ]);
     }
 
@@ -139,22 +155,44 @@ class BooksController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'status' => 'required|in:0,1',
+            'isbn' => 'nullable|numeric|min_digits:10|max_digits:13',
+            'author_id' => 'nullable|numeric|exists:book_authors,id,status,!=2',
+            'publisher_id' => 'nullable|numeric|exists:book_publishers,id,status,!=2',
+            'publication_year' => 'nullable|numeric|min_digits:4|max_digits:4',
+            'number_of_pages' => 'nullable|numeric|min_digits:1|max_digits:6',
+            'description' => 'nullable|string',
         ], [], [
-            'name' => 'Nama Buku',
+            'name' => 'Title',
+            'isbn' => 'ISBN',
+            'author_id' => 'Author',
+            'publisher_id' => 'Publisher',
+            'publication_year' => 'Publication Year',
+            'number_of_pages' => 'Number of Pages',
+            'description' => 'Description',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(apiRes("error_val", $validator->getMessageBag()->toArray()), 200);
+            return response()->json(apiRes("error_val", $validator->getMessageBag()->toArray()), 400);
         }
 
         DB::beginTransaction();
         try {
-            Book::create([
+            $book = Book::create([
                 'name' => sanitize_string($request->name),
-                'status' => sanitize_string($request->status, false),
+                'isbn' => sanitize_string($request->isbn),
+                'publication_year' => sanitize_string($request->publication_year),
+                'number_of_pages' => sanitize_string($request->number_of_pages),
+                'description' => sanitize_string($request->description),
                 'created_by' => auth()->user()->id,
             ]);
+
+            // Jika dia superadmin bisa masukin author idnya
+            if (auth()->user()->hasRole('SUPERADMIN')) {
+                $book->update([
+                    'author_id' => sanitize_string($request->author_id),
+                    'publisher_id' => sanitize_string($request->publisher_id),
+                ]);
+            }
 
             DB::commit();
         } catch (\Exception $e) {
@@ -170,9 +208,20 @@ class BooksController extends Controller
         $id = sanitize_string($request->id);
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'status' => 'required|in:0,1',
+            'isbn' => 'nullable|numeric|min_digits:10|max_digits:13',
+            'author_id' => 'nullable|numeric|exists:book_authors,id,status,!=2',
+            'publisher_id' => 'nullable|numeric|exists:book_publishers,id,status,!=2',
+            'publication_year' => 'nullable|numeric|min_digits:4|max_digits:4',
+            'number_of_pages' => 'nullable|numeric|min_digits:1|max_digits:6',
+            'description' => 'nullable|string',
         ], [], [
-            'name' => 'Nama Buku',
+            'name' => 'Title',
+            'isbn' => 'ISBN',
+            'author_id' => 'Author',
+            'publisher_id' => 'Publisher',
+            'publication_year' => 'Publication Year',
+            'number_of_pages' => 'Number of Pages',
+            'description' => 'Description',
         ]);
 
         if ($validator->fails()) {
@@ -185,9 +234,19 @@ class BooksController extends Controller
             $data = Book::withoutDeleted()->findOrFail($id);
             $data->update([
                 'name' => sanitize_string($request->name),
-                'status' => sanitize_string($request->status, false),
+                'isbn' => sanitize_string($request->isbn),
+                'publication_year' => sanitize_string($request->publication_year),
+                'number_of_pages' => sanitize_string($request->number_of_pages),
+                'description' => sanitize_string($request->description),
                 'updated_by' => auth()->user()->id,
             ]);
+
+            if (auth()->user()->hasRole('SUPERADMIN')) {
+                $data->update([
+                    'author_id' => sanitize_string($request->author_id),
+                    'publisher_id' => sanitize_string($request->publisher_id),
+                ]);
+            }
 
             DB::commit();
         } catch (\Exception $e) {
@@ -212,7 +271,7 @@ class BooksController extends Controller
         DB::beginTransaction();
         try {
 
-            $data = Book::findOrFail($id);
+            $data = Book::withoutDeleted()->findOrFail($id);
             $data->update([
                 'status' => 2
             ]);
@@ -220,7 +279,8 @@ class BooksController extends Controller
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(apiRes("error", "Data tidak ditemukan"), 400);
+            if ($e instanceof ModelNotFoundException) return response()->json(apiRes("error", 'Data tidak ditemukan'), 400);
+            return response()->json(apiRes("error", "Terdapat error, silahkan hubungi admin"), 400);
         }
 
         return response()->json(apiRes("success", "Hapus data berhasil"), 200);

@@ -47,7 +47,7 @@ class UsersController extends Controller
             ->whereNotIn('users.role_id', [1])
             ->where(function ($query) use ($status) {
                 if ($status != "" && auth()->user()->hasRole('SUPERADMIN')) {
-                    $query->where('users.status', $status);
+                    $query->where('users.status', (int)$status);
                 }
             })
             ->where(function ($query) use ($role) {

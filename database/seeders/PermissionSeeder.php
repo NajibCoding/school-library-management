@@ -65,10 +65,18 @@ class PermissionSeeder extends Seeder
         DB::beginTransaction();
         try {
             Role::updateOrCreate(['id' => 1], ['name' => 'SUPERADMIN']);
+            $superadmin = User::find(1);
+            $superadmin->assignRole('SUPERADMIN');
+            $superadmin->update(['role_id' => 1]);
+
             Role::updateOrCreate(['id' => 2], ['name' => 'USER']);
-            $users = User::find(1);
-            $users->assignRole('SUPERADMIN');
-            $users->update(['role_id' => 1]);
+            $role_user = Role::find(2);
+            $role_user->permissions()->detach();
+            $role_user->givePermissionTo(Permission::where('name', "LIKE", "books-%")->where('name', '!=', "books-delete")->get()->pluck('id')->toArray());
+            $users = User::where('role_id', $role_user->id)->get();
+            foreach ($users as $user) {
+                $user->syncRoles((int)$role_user->id);
+            }
 
 
             DB::commit();

@@ -1,5 +1,18 @@
 @extends('admin._layout')
 
+@php
+    $status = auth()
+        ->user()
+        ->hasRole('SUPERADMIN')
+        ? null
+        : 'disabled';
+    $display = auth()
+        ->user()
+        ->hasRole('SUPERADMIN')
+        ? null
+        : 'd-none';
+@endphp
+
 @section('container')
     <div class="card">
         <form id="form1" enctype="multipart/form-data">
@@ -20,13 +33,56 @@
                     </div>
 
                     <div class="form-group col-6">
-                        <label class="col-form-label">Status</label>
-                        <select name="status" id="status" class="form-control form-control-sm">
-                            <option value="">Pilih Status</option>
-                            <option value="0">Tidak Aktif</option>
-                            <option value="1">Aktif</option>
+                        <label class="col-form-label">ISBN</label>
+                        <input type="text" class="form-control form-control-sm number" name="isbn" id="isbn"
+                            value="{{ old('isbn', isset($res) ? $res->isbn : '') }}">
+                        <small class="form-text text-danger" id="isbn_error"></small>
+                    </div>
+
+                    <div class="form-group col-6 {{ $display }}">
+                        <label class="col-form-label">Author</label>
+                        <select type="text" class="form-control form-control-sm" name="author_id" id="author_id"
+                            value="{{ old('author_id', isset($res) ? $res->author_id : '') }}" {{ $status }}>
+                            <option value="">Pilih Author</option>
+                            @foreach ($authors as $author)
+                                <option value="{{ $author->id }}" {{ $author->status == 0 ? 'disabled' : null }}>
+                                    {{ $author->name }}</option>
+                            @endforeach
                         </select>
-                        <small class="form-text text-danger" id="status_error"></small>
+                        <small class="form-text text-danger" id="author_id_error"></small>
+                    </div>
+
+                    <div class="form-group col-6 {{ $display }}">
+                        <label class="col-form-label">Publisher</label>
+                        <select type="text" class="form-control form-control-sm" name="publisher_id" id="publisher_id"
+                            value="{{ old('publisher_id', isset($res) ? $res->publisher_id : '') }}" {{ $status }}>
+                            <option value="">Pilih Publisher</option>
+                            @foreach ($publishers as $publisher)
+                                <option value="{{ $publisher->id }}" {{ $publisher->status == 0 ? 'disabled' : null }}>
+                                    {{ $publisher->name }}</option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-danger" id="publisher_id_error"></small>
+                    </div>
+
+                    <div class="form-group col-6">
+                        <label class="col-form-label">Publication Year</label>
+                        <input type="text" class="form-control form-control-sm number" name="publication_year" id="publication_year"
+                            value="{{ old('publication_year', isset($res) ? $res->publication_year : '') }}">
+                        <small class="form-text text-danger" id="publication_year_error"></small>
+                    </div>
+
+                    <div class="form-group col-6">
+                        <label class="col-form-label">Number of Pages</label>
+                        <input type="text" class="form-control form-control-sm number" name="number_of_pages" id="number_of_pages"
+                            value="{{ old('number_of_pages', isset($res) ? $res->number_of_pages : '') }}">
+                        <small class="form-text text-danger" id="number_of_pages_error"></small>
+                    </div>
+
+                    <div class="form-group col-12">
+                        <label class="col-form-label">Description</label>
+                        <textarea rows="10" class="form-control form-control-sm" name="description" id="description">{{ old('description', isset($res) ? $res->description : '') }}</textarea>
+                        <small class="form-text text-danger" id="description_error"></small>
                     </div>
 
                 </div>
@@ -80,7 +136,12 @@
                         var result = json.result;
                         console.log(result);
                         $('#name').val(result.name);
-                        $('#status').val(result.status);
+                        $('#isbn').val(result.isbn);
+                        $('#author_id').val(result.author_id);
+                        $('#publisher_id').val(result.publisher_id);
+                        $('#publication_year').val(result.publication_year);
+                        $('#number_of_pages').val(result.number_of_pages);
+                        $('#description').text(result.description);
 
                     } else if (json.status == "error_val") {
                         $.each(json.error_message, function(key, val) {
