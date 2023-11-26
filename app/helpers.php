@@ -2,11 +2,12 @@
 
 use App\Models\Menu;
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 
 
 if (!function_exists('sanitize_string')) {
-    function sanitize_string(string $str, bool $defaultNull = true)
+    function sanitize_string(mixed $str, bool $defaultNull = true)
     {
         $str = strip_tags($str);
         $str = trim($str);
@@ -121,5 +122,28 @@ if (!function_exists('getMenus')) {
             }
         }
         return $result;
+    }
+}
+
+if (!function_exists('snakeToTitleCase')) {
+    function snakeToTitleCase(mixed $str)
+    {
+        return Str::of($str)->snake()->replace('_', ' ')->title();
+    }
+}
+
+if (!function_exists('apiRes')) {
+    function apiRes($status, $result)
+    {
+        if ($status == "success") {
+            return array(
+                'status' => $status, 'timestamp' => now()->format('Y-m-d H:i:s'), 'result' => $result
+            );
+        } else {
+            // logger($exception);
+            return array(
+                'status' => $status, 'timestamp' => now()->format('Y-m-d H:i:s'), 'error_message' => $result
+            );
+        }
     }
 }

@@ -5,14 +5,14 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateSettingsTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
      *
      * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
@@ -32,8 +32,8 @@ class CreateSettingsTable extends Migration
      *
      * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('settings');
     }
-}
+};

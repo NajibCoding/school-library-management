@@ -1,10 +1,39 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $setting_title_website }} Admin | {{ $page_title }}</title>
-    <link rel="icon" type="image/png" href="{{ url('assets/images/favicon.png') }}">
+    <title>{{ isset($setting_title_website) ? $setting_title_website : null }} Admin | {{ $page_title }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <meta name="title"
+        content="{{ isset($setting_title_website) ? $setting_title_website : null }} Admin | {{ $page_title }}">
+    <meta name="description" content="{{ isset($setting_description_website) ? $setting_description_website : null }}">
+    <meta name="keywords" content="{{ isset($setting_keywords_website) ? $setting_keywords_website : null }}">
+    <meta name="canonical" content="{{ url()->current() }}">
 
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="{{ isset($setting_title_website) ? $setting_title_website : null }}">
+    <meta property="og:description"
+        content="{{ isset($setting_description_website) ? $setting_description_website : null }}">
+    <meta property="og:image"
+        content="{{ isset($setting_logo_website) ? url(implode('/', ['storage', $setting_logo_website])) : null }}">
+
+    <meta property="twitter:card" content="{{ isset($setting_title_website) ? $setting_title_website : null }}">
+    <meta property="twitter:url" content="{{ url()->current() }}">
+    <meta property="twitter:title"
+        content="{{ isset($setting_title_website) ? $setting_title_website : null }} Admin | {{ $page_title }}">
+    <meta property="twitter:description"
+        content="{{ isset($setting_description_website) ? $setting_description_website : null }}">
+    <meta property="twitter:image"
+        content="{{ isset($setting_logo_website) ? url(implode('/', ['storage', $setting_logo_website])) : null }}">
+
+    <!-- Favicons -->
+    @if ($setting_favicon_website)
+        <link href="{{ url(implode('/', ['storage', $setting_favicon_website])) }}" rel="icon">
+    @endif
+    @if ($setting_apple_touch_favicon_website)
+        <link href="{{ url(implode('/', ['storage', $setting_apple_touch_favicon_website])) }}" rel="apple-touch-icon">
+    @endif
 
     <!-- Font Awesome -->
     {{-- <link rel="stylesheet" href="{{asset('assets')}}/plugins/fontawesome-free/css/all.min.css"> --}}
@@ -33,8 +62,7 @@
 
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('assets') }}/plugins/select2/css/select2.min.css">
-    <link rel="stylesheet"
-        href="{{ asset('assets') }}/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+    <link rel="stylesheet" href="{{ asset('assets') }}/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
 
     <!-- Sweet Alert css -->
     <link href="{{ asset('assets') }}/sweet-alert/sweetalert2.min.css" rel="stylesheet" type="text/css" />

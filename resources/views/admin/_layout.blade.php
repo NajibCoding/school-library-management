@@ -51,10 +51,11 @@
             <!-- Brand Logo -->
             <a href="{{ url('/') }}" class="brand-link">
                 @if (isset($setting_logo_website) && $setting_logo_website)
-                    <img src="{{ asset('assets/images') }}/logo.png" class="brand-image " style="opacity: .8">
+                    <img src="{{ url('storage/' . $setting_logo_website) }}" class="brand-image " style="opacity: .8">
                     <span class="brand-text"> | Admin Panel</span>
                 @else
-                    <span class="brand-text">{{ isset($setting_title_website) ? $setting_title_website : null }} | Admin Panel</span>
+                    <span class="brand-text">{{ isset($setting_title_website) ? $setting_title_website : null }} | Admin
+                        Panel</span>
                 @endif
             </a>
 
