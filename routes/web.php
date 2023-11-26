@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\KonfigurasiController;
 
@@ -39,6 +40,16 @@ Route::prefix('admin')->middleware('cek_login')->group(function () {
         Route::get('/', [DashboardController::class, 'index']);
     });
 
+    Route::prefix('users')->group(function () {
+        Route::get('/', [UsersController::class, 'index'])->middleware(['role_or_permission:SUPERADMIN|users-list']);
+        Route::get('ajax_list', [UsersController::class, 'ajax_list'])->middleware(['role_or_permission:SUPERADMIN|users-list']);
+        Route::get('create', [UsersController::class, 'create'])->middleware(['role_or_permission:SUPERADMIN|users-add']);
+        Route::post('ajax_save', [UsersController::class, 'ajax_save'])->middleware(['role_or_permission:SUPERADMIN|users-add']);
+        Route::post('ajax_update', [UsersController::class, 'ajax_update'])->middleware(['role_or_permission:SUPERADMIN|users-edit']);
+        Route::get('edit/{id}', [UsersController::class, 'edit'])->middleware(['role_or_permission:SUPERADMIN|users-edit']);
+        Route::post('ajax_get_one', [UsersController::class, 'ajaxGetOne'])->middleware(['role_or_permission:SUPERADMIN|users-edit']);
+        Route::post('ajax_delete', [UsersController::class, 'ajax_delete'])->middleware(['role_or_permission:SUPERADMIN|users-delete']);
+    });
 
     Route::prefix('konfigurasi')->group(function () {
         Route::get('/', [KonfigurasiController::class, 'index'])->middleware(['role_or_permission:SUPERADMIN|konfigurasi-list']);

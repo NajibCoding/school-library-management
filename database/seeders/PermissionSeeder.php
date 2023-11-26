@@ -40,8 +40,8 @@ class PermissionSeeder extends Seeder
         DB::unprepared('SET FOREIGN_KEY_CHECKS=1;');
         DB::beginTransaction();
         try {
-            Role::firstOrCreate(['name' => 'SUPERADMIN']);
-            Role::firstOrCreate(['name' => 'USER']);
+            Role::updateOrCreate(['id' => 1], ['name' => 'SUPERADMIN']);
+            Role::updateOrCreate(['id' => 2], ['name' => 'USER']);
             $users = User::find(1);
             $users->assignRole('SUPERADMIN');
             $users->update(['role_id' => 1]);

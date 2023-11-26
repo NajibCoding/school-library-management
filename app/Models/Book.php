@@ -4,12 +4,13 @@ namespace App\Models;
 
 use App\Models\BookAuthor;
 use App\Models\BookPublisher;
+use App\Http\Traits\HasStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Book extends Model
 {
-    use HasFactory;
+    use HasFactory, HasStatus;
     protected $table = 'books';
     protected $guarded = ['id'];
     protected $hidden = [
